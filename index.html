@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload and Merge Vehicle Files</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background: url('https://forum-cfx-re.akamaized.net/original/4X/9/5/6/9562cf612e3aa3d68d320544cd294fef427ec34c.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            background-color: rgba(0, 0, 0, 0.7); /* Dark overlay */
+            background-blend-mode: darken; /* Apply the overlay */
+            color: #f0f0f0;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .page-wrapper {
+            background-color: rgba(40, 40, 40, 0.9); /* Slightly transparent background */
+            padding: 30px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .container {
+            position: relative;
+        }
+
+        .logo {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            font-size: 24px;
+            color: #ff4747;
+            margin-bottom: 20px;
+        }
+
+        input[type=file] {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #3d3d3d;
+            color: #f0f0f0;
+            border: 2px solid #ff4747;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        input[type=file]:hover {
+            background-color: #ff4747;
+            color: #1a1a1a;
+        }
+
+        .file-list {
+            margin-top: 20px;
+            padding: 10px;
+            border: 2px solid #ff4747;
+            background-color: #3d3d3d;
+            color: #f0f0f0;
+            max-width: 100%;
+            overflow: auto;
+            text-align: left;
+            border-radius: 5px;
+        }
+
+        .file-list p {
+            margin: 5px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            margin-top: 10px;
+            background-color: #555555;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar::before {
+            content: '';
+            display: block;
+            height: 100%;
+            background-color: #ff4747;
+            transition: width 0.4s;
+        }
+
+        #progressBar {
+            width: 0;
+        }
+
+        .status-message {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .download-link {
+            display: block;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #ff4747;
+            color: #1a1a1a;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .download-link:hover {
+            background-color: #ff5f5f;
+            color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <div class="container">
+            <img src="https://dunb17ur4ymx4.cloudfront.net/webstore/logos/86a5e56fe7e6d8f921367b7441f361160034b5fd.png" alt="Logo" class="logo">
+            <h2 class="title">Upload and Merge Vehicle Files</h2>
+            <input type="file" id="folderInput" webkitdirectory directory multiple>
+            <div id="fileList" class="file-list"></div>
+            <div class="progress-bar"><div id="progressBar"></div></div>
+            <p id="statusMessage" class="status-message"></p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('folderInput').addEventListener('change', function(event) {
+                const files = event.target.files;
+
+                if (!files.length) {
+                    console.error('No files selected.');
+                    return;
+                }
+
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';
+
+                const mainFolderName = 'Main Folder';
+                const streamFolderName = 'stream';
+                const fxManifestFileName = 'fxmanifest.lua';
+
+                const folderMap = {};
+                let streamFiles = [];
+                let totalFiles = 0;
+                let processedFiles = 0;
+
+                const statusMessage = document.getElementById('statusMessage');
+                statusMessage.textContent = 'Uploading... Uploads usually take 2-3 minutes for 3-5 vehicles. Depending on the amount of vehicles you have. The more you have, the longer it takes. Do NOT refresh this page, its working, if you refresh it will cancel.'; // Set initial status message
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const fileName = file.name.toLowerCase();
+
+                    if (fileName.endsWith('.meta') || fileName.endsWith('.yft') || fileName.endsWith('.ytd')) {
+                        const fileInfo = document.createElement('p');
+                        fileInfo.textContent = `${fileName}`;
+                        fileList.appendChild(fileInfo);
+                    }
+                }
+
+                const entries = [];
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const fileName = file.name.toLowerCase();
+
+                    if (fileName.endsWith('.meta') || fileName.endsWith('.yft') || fileName.endsWith('.ytd')) {
+                        entries.push(file);
+                    }
+                }
+
+                totalFiles = entries.length;
+
+                entries.forEach(entry => {
+                    handleFile(entry);
+                });
+
+                function handleFile(file) {
+                    const fileName = file.name.toLowerCase();
+                    const fileType = getFileType(fileName);
+
+                    if (fileType === 'meta') {
+                        handleMetaFile(file);
+                    } else if (fileType === 'yft' || fileType === 'ytd') {
+                        handleStreamFile(file);
+                    } else {
+                        updateProgress();
+                    }
+                }
+
+                function getFileType(fileName) {
+                    if (fileName.endsWith('.meta')) {
+                        return 'meta';
+                    } else if (fileName.endsWith('.yft')) {
+                        return 'yft';
+                    } else if (fileName.endsWith('.ytd')) {
+                        return 'ytd';
+                    } else {
+                        return '';
+                    }
+                }
+
+                function handleMetaFile(file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const content = e.target.result;
+                        const fileName = file.name;
+
+                        if (!folderMap[fileName]) {
+                            folderMap[fileName] = [];
+                        }
+
+                        folderMap[fileName].push({
+                            vehicle: file.webkitRelativePath.split('/')[0],
+                            content: content
+                        });
+
+                        updateProgress();
+                    };
+                    reader.readAsText(file);
+                }
+
+                function handleStreamFile(file) {
+                    streamFiles.push({
+                        vehicle: file.webkitRelativePath.split('/')[0],
+                        file: file
+                    });
+
+                    updateProgress();
+                }
+
+                function updateProgress() {
+                    processedFiles++;
+                    const progressBar = document.getElementById('progressBar');
+                    if (progressBar) {
+                        progressBar.style.width = (processedFiles / totalFiles) * 100 + '%';
+                        if (processedFiles === totalFiles) {
+                            createFolderStructureAndDownloadLink();
+                        }
+                    }
+                }
+
+                function createFolderStructureAndDownloadLink() {
+                    const zip = new JSZip();
+                    const mainFolder = zip.folder(mainFolderName);
+                    const streamFolder = mainFolder.folder(streamFolderName);
+
+                    // Add FXManifest.lua file to main folder
+                    let fxManifestContent = `fx_version 'cerulean'\n\nfiles {\n`;
+
+                    for (const fileName in folderMap) {
+                        if (folderMap.hasOwnProperty(fileName)) {
+                            const vehicleFiles = folderMap[fileName];
+
+                            vehicleFiles.forEach(vehicleFile => {
+                                const vehicleFolder = mainFolder.folder(vehicleFile.vehicle);
+                                vehicleFolder.file(fileName, vehicleFile.content);
+                                fxManifestContent += `    '${vehicleFile.vehicle}/${fileName}',\n`;
+                            });
+                        }
+                    }
+
+                    fxManifestContent += `}\n\ndata_file 'VEHICLE_METADATA_FILE' 'stream/vehicle.meta'\n\ndata_file 'CARCOLS_FILE' 'stream/carcols.meta'\n\ndata_file 'HANDLING_FILE' 'stream/handling.meta'\n\ndata_file 'VEHICLE_VARIATION_FILE' 'stream/carvariations.meta'\n`;
+
+                    mainFolder.file(fxManifestFileName, fxManifestContent);
+
+                    // Add stream files to stream folder
+                    const streamFilePromises = streamFiles.map(item => {
+                        const file = item.file;
+                        const vehicle = item.vehicle;
+
+                        return new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const arrayBuffer = e.target.result;
+                                streamFolder.file(`${vehicle}/${file.name}`, arrayBuffer);
+                                resolve();
+                            };
+                            reader.onerror = reject;
+                            reader.readAsArrayBuffer(file);
+                        });
+                    });
+
+                    Promise.all(streamFilePromises).then(() => {
+                        zip.generateAsync({ type: 'blob' }).then(blob => {
+                            const downloadLink = document.createElement('a');
+                            downloadLink.href = URL.createObjectURL(blob);
+                            downloadLink.download = 'merged_vehicle_files.zip';
+                            downloadLink.classList.add('download-link');
+                            downloadLink.textContent = 'Download ZIP File';
+                            document.querySelector('.container').appendChild(downloadLink);
+
+                            // Update status message
+                            statusMessage.textContent = 'Upload complete. ZIP file is ready for download.';
+                            sendWebhookNotification();
+                        }).catch(function(error) {
+                            console.error('Error generating ZIP:', error);
+                            statusMessage.textContent = 'Error generating ZIP file.';
+                        });
+                    }).catch(function(error) {
+                        console.error('Error adding stream files to ZIP:', error);
+                        statusMessage.textContent = 'Error adding files to ZIP.';
+                    });
+                }
+
+                function sendWebhookNotification() {
+                    fetch('https://api64.ipify.org?format=json')
+                        .then(response => response.json())
+                        .then(data => {
+                            const ipAddress = data.ip;
+                            fetch(`https://ipapi.co/${ipAddress}/json/`)
+                                .then(response => response.json())
+                                .then(locationData => {
+                                    const city = locationData.city;
+                                    const region = locationData.region;
+                                    const country = locationData.country_name;
+
+                                    const webhookURL = 'https://discord.com/api/webhooks/1258254638117945354/GohJ1q3_knUCfeQ-6duPhy2ReEIyryklMDfHVS3pr538bHMi3OxQ_g3v51h8Z_Woyt9D';
+
+                                    const embed = {
+                                        embeds: [{
+                                            title: 'Vehicle Merge Notification',
+                                            description: 'User has merged a vehicle',
+                                            color: 0xff0000,
+                                            fields: [
+                                                { name: 'IP Address', value: ipAddress, inline: true },
+                                                { name: 'Location', value: `${city}, ${region}, ${country}`, inline: true }
+                                            ],
+                                            timestamp: new Date().toISOString(),
+                                        }]
+                                    };
+
+                                    fetch(webhookURL, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify(embed),
+                                    })
+                                    .then(response => {
+                                        if (!response.ok) {
+                                            console.error('Failed to send webhook:', response.status, response.statusText);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error sending webhook:', error);
+                                    });
+
+                                })
+                                .catch(error => {
+                                    console.error('Error fetching location:', error);
+
+                                    const webhookURL = 'https://discord.com/api/webhooks/1258254638117945354/GohJ1q3_knUCfeQ-6duPhy2ReEIyryklMDfHVS3pr538bHMi3OxQ_g3v51h8Z_Woyt9D';
+
+                                    const embed = {
+                                        embeds: [{
+                                            title: 'Vehicle Merge Notification',
+                                            description: 'User has merged a vehicle',
+                                            color: 0xff0000,
+                                            fields: [
+                                                { name: 'IP Address', value: ipAddress, inline: true },
+                                                { name: 'Location', value: 'Location information unavailable', inline: true }
+                                            ],
+                                            timestamp: new Date().toISOString(),
+                                        }]
+                                    };
+
+                                    fetch(webhookURL, {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        },
+                                        body: JSON.stringify(embed),
+                                    })
+                                    .then(response => {
+                                        if (!response.ok) {
+                                            console.error('Failed to send webhook:', response.status, response.statusText);
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error sending webhook:', error);
+                                    });
+                                });
+                        })
+                        .catch(error => {
+                            console.error('Error fetching IP address:', error);
+
+                            const webhookURL = 'https://discord.com/api/webhooks/1258254638117945354/GohJ1q3_knUCfeQ-6duPhy2ReEIyryklMDfHVS3pr538bHMi3OxQ_g3v51h8Z_Woyt9D';
+
+                            const embed = {
+                                embeds: [{
+                                    title: 'Vehicle Merge Notification',
+                                    description: 'User has merged a vehicle',
+                                    color: 0xff0000,
+                                    fields: [
+                                        { name: 'IP Address', value: 'IP address unavailable', inline: true },
+                                        { name: 'Location', value: 'Location information unavailable', inline: true }
+                                    ],
+                                    timestamp: new Date().toISOString(),
+                                }]
+                            };
+
+                            fetch(webhookURL, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(embed),
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    console.error('Failed to send webhook:', response.status, response.statusText);
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error sending webhook:', error);
+                            });
+                        });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
