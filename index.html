@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload and Merge Vehicle Files</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+
         body {
-            background: url('https://forum-cfx-re.akamaized.net/original/4X/9/5/6/9562cf612e3aa3d68d320544cd294fef427ec34c.jpeg') no-repeat center center fixed;
+            background: url('https://i.gyazo.com/3638217c5a6bd9bdc6288c89aca6ee77.jpg') no-repeat center center fixed; 
             background-size: cover;
-            background-color: rgba(0, 0, 0, 0.7); /* Dark overlay */
-            background-blend-mode: darken; /* Apply the overlay */
-            color: #f0f0f0;
+            color: #e0e0e0; /* Light text */
             font-family: 'Roboto', sans-serif;
             display: flex;
             justify-content: center;
@@ -20,663 +19,430 @@
             margin: 0;
         }
 
-        .page-wrapper {
-            background-color: rgba(40, 40, 40, 0.9); /* Slightly transparent background */
-            padding: 30px;
-            border-radius: 15px;
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 600px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-            text-align: center;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6); /* Dark overlay with opacity */
         }
-        
+
+        .page-wrapper {
+            position: relative;
+            background-color: rgba(30, 30, 30, 0.9); /* Slightly lighter dark background for the box */
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+            text-align: center;
+            z-index: 1;
+            border: 2px solid #ff4c4c; /* Red outline */
+        }
 
         .container {
-            position: relative;
-        }
-
-        .logo {
-            width: 100px;
-            margin-bottom: 20px;
+            padding: 20px;
         }
 
         .title {
-            font-size: 24px;
-            color: #ff4747;
+            color: #ff4c4c; /* Slightly brighter red for the title */
             margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 500;
         }
 
         input[type=file] {
             margin-top: 20px;
-            padding: 10px;
-            background-color: #3d3d3d;
-            color: #f0f0f0;
-            border: 2px solid #ff4747;
+            padding: 12px;
+            background-color: #333333; /* Dark grey */
+            color: #ffffff; /* White text */
+            border: none;
             cursor: pointer;
             font-size: 16px;
-            border-radius: 5px;
+            border-radius: 6px;
             width: 100%;
             box-sizing: border-box;
-            transition: background-color 0.3s, color 0.3s;
+            transition: background-color 0.3s ease;
         }
 
         input[type=file]:hover {
-            background-color: #ff4747;
-            color: #1a1a1a;
+            background-color: #444444; /* Slightly lighter on hover */
         }
 
         .file-list {
             margin-top: 20px;
-            padding: 10px;
-            border: 2px solid #ff4747;
-            background-color: #3d3d3d;
-            color: #f0f0f0;
+            padding: 15px;
+            border: 1px solid #444444; /* Lighter grey border */
+            background-color: #2b2b2b; /* Dark grey */
+            color: #ffffff; /* White text */
             max-width: 100%;
             overflow: auto;
             text-align: left;
-            border-radius: 5px;
+            border-radius: 6px;
+            max-height: 200px;
+            transition: max-height 0.3s ease;
         }
 
         .file-list p {
             margin: 5px 0;
         }
 
-        .progress-bar {
-            width: 100%;
-            height: 20px;
-            margin-top: 10px;
-            background-color: #555555;
-            border-radius: 5px;
+        .file-list.hide {
+            max-height: 0;
+            padding: 0 15px;
             overflow: hidden;
-            position: relative;
         }
 
-        .progress-bar::before {
-            content: '';
-            display: block;
-            height: 100%;
-            background-color: #ff4747;
-            transition: width 0.4s;
-        }
-
-        #progressBar {
-            width: 0;
-        }
-
-        .status-message {
+        .toggle-button {
             margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #ff4c4c; /* Red for button */
+            color: #ffffff; /* White text */
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
             font-size: 16px;
+            transition: background-color 0.3s ease;
         }
 
-        .download-link {
-            display: block;
+        .toggle-button:hover {
+            background-color: #ff6666; /* Lighter red on hover */
+        }
+
+        .logo {
+            width: 150px; /* Larger logo size */
+            margin-bottom: 20px;
+        }
+
+        .download-button {
             margin-top: 20px;
-            padding: 10px;
-            background-color: #ff4747;
-            color: #1a1a1a;
-            border-radius: 5px;
+            padding: 12px 24px;
+            background-color: #ff4c4c; /* Red for download button */
+            color: #ffffff; /* White text */
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
             text-decoration: none;
-            font-size: 18px;
+            display: inline-block;
+        }
+
+        .download-button:hover {
+            background-color: #ff6666; /* Lighter red on hover */
+        }
+
+        .supporter-options {
+            margin-top: 20px;
+            text-align: left;
+            display: none;
+        }
+
+        .supporter-options.show {
+            display: flex;
+            justify-content: center; /* Center items horizontally */
+            flex-wrap: wrap; /* Wrap items onto new line when necessary */
+            gap: 5px; /* Small gap between supporter packages */
+        }
+
+        .supporter-options h3 {
+            color: #ff4c4c; /* Red for title */
+            font-size: 16px;
             font-weight: bold;
-            transition: background-color 0.3s, color 0.3s;
+            margin-bottom: 10px;
+            text-align: center;
+            width: 100%;
         }
 
-        .download-link:hover {
-            background-color: #ff5f5f;
-            color: #f0f0f0;
+        .package {
+            background-color: #333333; /* Dark grey for package */
+            color: #ffffff; /* White text */
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 2px solid #ff4c4c; /* Red outline */
+            width: calc(50% - 5px); /* Adjusted width */
+            max-width: 180px;
         }
 
-        /* Premium Subscription Section Styles */
-        .premium-section {
-            margin-top: 40px;
-            padding: 20px;
-            background-color: #333333;
-            border-radius: 10px;
+        @media (max-width: 768px) {
+            .package {
+                width: 100%; /* Full width on smaller screens */
+            }
+        }
+
+        .package h4 {
+            color: #ff4c4c; /* Red for package title */
+            font-size: 14px;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+
+        .package p {
+            margin-bottom: 5px;
+            font-size: 12px;
             text-align: left;
         }
 
-        .premium-title {
-            font-size: 24px;
-            color: #ff4747;
-            margin-bottom: 10px;
+        .package:last-child {
+            margin-bottom: 0;
         }
 
-        .premium-option {
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: #3d3d3d;
-            color: #f0f0f0;
-            border: 2px solid #ff4747;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .premium-option:hover {
-            background-color: #ff4747;
-            color: #1a1a1a;
-        }
-
-        .premium-option .price {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .premium-option .details {
-            font-size: 14px;
-            margin-top: 5px;
-            color: #cccccc;
-        }
-        /* Button styling */
-#premiumToggleBtn {
-    background-color: #ff4747;
-    color: #ffffff;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    margin-top: 20px;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-#premiumToggleBtn:hover {
-    background-color: #ff5f5f;
-}
-#toggleFileListBtn {
-            background-color: #ff4747;
-            color: #ffffff;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
+        .discord-button {
             margin-top: 20px;
-            transition: background-color 0.3s, color 0.3s;
+            padding: 12px 24px;
+            background-color: #ff4c4c; /* Red for Discord button */
+            color: #ffffff; /* White text */
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
         }
 
-        #toggleFileListBtn:hover {
-            background-color: #ff5f5f;
+        .discord-button:hover {
+            background-color: #ff6666; /* Lighter red on hover */
         }
 
-
-
+        .red-outline {
+            border: 2px solid #ff4c4c; /* Red outline */
+        }
     </style>
 </head>
 <body>
+    <div class="overlay"></div>
     <div class="page-wrapper">
         <div class="container">
-            <img src="https://dunb17ur4ymx4.cloudfront.net/webstore/logos/86a5e56fe7e6d8f921367b7441f361160034b5fd.png" alt="Logo" class="logo">
+            <img src="https://i.gyazo.com/24452862b228c48099ec621a7deaface.png" alt="Logo" class="logo">
             <h2 class="title">Upload and Merge Vehicle Files</h2>
-            <input type="file" id="folderInput" webkitdirectory directory multiple>
-            <div id="fileList" class="file-list"></div>
-            <div class="progress-bar"><div id="progressBar"></div></div>
-            <p id="statusMessage" class="status-message"></p>
-            
-<!-- Premium Subscription Section -->
-<div class="premium-section">
-    <h3 class="premium-title">Premium Subscription Options</h3>
-    
-    <div id="premiumOptions" style="display: none;">
-        <div class="premium-option">
-            <div>
-                <h4>Free</h4>
-                <p class="price">00.00 / month</p>
+            <input type="file" id="folderInput" webkitdirectory directory multiple class="red-outline">
+            <div id="fileList" class="file-list red-outline"></div>
+            <button id="toggleButton" class="toggle-button red-outline" onclick="toggleFileList()">Toggle File List</button>
+            <p id="progressMessage" class="progress-message" style="display: none;">In Progress...</p>
+            <a href="#" id="downloadLink" class="download-button red-outline" style="display: none;">Download Main Folder as ZIP</a>
+            <button id="supporterButton" class="toggle-button red-outline" onclick="toggleSupporterOptions()">Supporter Options</button>
+            <div id="supporterOptions" class="supporter-options red-outline">
+                <div class="package">
+                    <h4>Package 1</h4>
+                    <p>- Perk 1</p>
+                    <p>- Perk 2</p>
+                    <p>- Perk 3</p>
+                </div>
+                <div class="package">
+                    <h4>Package 2</h4>
+                    <p>- Perk 1</p>
+                    <p>- Perk 2</p>
+                    <p>- Perk 3</p>
+                </div>
+                <div class="package">
+                    <h4>Package 3</h4>
+                    <p>- Perk 1</p>
+                    <p>- Perk 2</p>
+                    <p>- Perk 3</p>
+                </div>
             </div>
-            <div class="details">
-                <p>Unlimited Conversions</p>
-                <p>Max of Two Vehicles per conversion</p>
-            </div>
-        </div>
-        <div id="roleStatus"></div>
-        <div id="loginStatus"></div>
-        <script src="scripts.js"></script>
-        
-        <div class="premium-option">
-            <div>
-                <h4>Basic</h4>
-                <p class="price">$0.99 / month</p>
-            </div>
-            <div class="details">
-                <p>Unlimited Conversions</p>
-                <p>Max of ten vehicles per conversion</p>
-            </div>
-        </div>
-
-        <div class="premium-option">
-            <div>
-                <h4>Pro</h4>
-                <p class="price">$4.99 / month</p>
-            </div>
-            <div class="details">
-                <p>Unlimited Conversions</p>
-                <p>Unlimited Vehicles per Conversion</p>
-                <p>Additional perks can be added here</p>
-            </div>
+            <a href="https://discord.gg/EQggQtcWuG" class="discord-button red-outline">Join our Discord</a>
         </div>
     </div>
-    
-    <button id="premiumToggleBtn" onclick="togglePremiumSection()">Show Premium Options</button>
-</div>
-
- <!-- Button and logo display area -->
- <div id="authSection" style="position: fixed; top: 10px; right: 10px;">
-    <button id="authButton" style="display: none;">Login with Discord</button>
-    <img id="userAvatar" style="display: none; width: 40px; height: 40px; border-radius: 50%;">
-</div>
-
-
-
-        <!-- File List Section -->
-        <div id="fileListSection" style="display: none;">
-            <div id="fileList" class="file-list"></div>
-        </div>
-
-        <button id="toggleFileListBtn" onclick="toggleFileList()">Hide File List</button>
-
-
-        <script>
-            function toggleFileList() {
-                var fileList = document.getElementById('fileList');
-                var fileListSection = document.getElementById('fileListSection');
-                var toggleBtn = document.getElementById('toggleFileListBtn');
-    
-                if (fileList.style.display === 'none') {
-                    fileList.style.display = 'block';
-                    toggleBtn.textContent = 'Hide File List';
-                } else {
-                    fileList.style.display = 'none';
-                    toggleBtn.textContent = 'Show File List';
-                }
-            }
-        </script>
-
-
-
-
-
-
-
-<script>
-    // Function to update UI after successful login
-    function updateUIWithAvatar(avatarURL) {
-        const authButton = document.getElementById('authButton');
-        const userAvatar = document.getElementById('userAvatar');
-
-        authButton.style.display = 'none'; // Hide login button
-        userAvatar.src = avatarURL; // Set avatar image source
-        userAvatar.style.display = 'inline-block'; // Show avatar image
-    }
-
-    // Check if user is logged in and update UI accordingly
-    function checkLoggedIn() {
-        const token = localStorage.getItem('discord_token'); // Example: Use localStorage to store token
-        if (token) {
-            // Fetch user profile using Discord API
-            fetch('https://discord.com/api/users/@me', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                const avatarURL = `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png`;
-                updateUIWithAvatar(avatarURL);
-            })
-            .catch(error => {
-                console.error('Error fetching user data:', error);
-            });
-        } else {
-            // Show login button if user is not logged in
-            const authButton = document.getElementById('authButton');
-            authButton.style.display = 'inline-block';
-        }
-    }
-
-    // Handle login button click
-    document.getElementById('authButton').addEventListener('click', () => {
-        // Redirect user to Discord OAuth2 authorization endpoint
-        window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=807252635605794846&redirect_uri=https%3A%2F%2Fmerger.redleafmods.com%2Fcallback&response_type=code&scope=identify%20email';
-    });
-
-    // Call checkLoggedIn function when the page loads
-    document.addEventListener('DOMContentLoaded', () => {
-        checkLoggedIn();
-    });
-</script>
-
-
-
-
-
-
-<script>
-    function togglePremiumSection() {
-        var premiumOptions = document.getElementById('premiumOptions');
-        var toggleBtn = document.getElementById('premiumToggleBtn');
-        
-        if (premiumOptions.style.display === 'none') {
-            premiumOptions.style.display = 'block';
-            toggleBtn.textContent = 'Hide Premium Options';
-        } else {
-            premiumOptions.style.display = 'none';
-            toggleBtn.textContent = 'Show Premium Options';
-        }
-    }
-</script>
-
-<script>
-    function loginWithDiscord() {
-        const CLIENT_ID = '807252635605794846';
-        const REDIRECT_URI = 'https://merger.redleafmods.com/callback';
-        const AUTH_URL = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=identify`;
-
-        window.location.href = AUTH_URL;
-    }
-</script>
-
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('folderInput').addEventListener('change', function(event) {
-                const files = event.target.files;
+        let zip = new JSZip(); // Define JSZip instance
 
-                if (!files.length) {
-                    console.error('No files selected.');
-                    return;
+        function toggleFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.classList.toggle('hide');
+        }
+
+        function toggleSupporterOptions() {
+            const supporterOptions = document.getElementById('supporterOptions');
+            supporterOptions.classList.toggle('show');
+        }
+
+        document.getElementById('folderInput').addEventListener('change', function(e) {
+            const files = e.target.files;
+            const fileList = document.getElementById('fileList');
+            const progressMessage = document.getElementById('progressMessage');
+            const downloadLink = document.getElementById('downloadLink');
+
+            fileList.innerHTML = ''; // Clear file list
+            progressMessage.style.display = 'block'; // Show progress message
+
+            const mainFolderName = 'Main Folder';
+            const streamFolderName = 'stream';
+            const dataFolderName = 'data';
+            const fxManifestFileName = 'fxmanifest.lua';
+
+            const folderMap = {};
+            let streamFiles = [];
+            let totalFiles = 0;
+            let processedFiles = 0;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileName = file.name.toLowerCase();
+
+                if (fileName.endsWith('.meta') || fileName.endsWith('.yft') || fileName.endsWith('.ytd')) {
+                    const fileInfo = document.createElement('p');
+                    fileInfo.textContent = fileName;
+                    document.getElementById('fileList').appendChild(fileInfo);
                 }
+            }
 
-                const fileList = document.getElementById('fileList');
-                fileList.innerHTML = '';
+            const entries = [];
 
-                const mainFolderName = 'Main Folder';
-                const streamFolderName = 'stream';
-                const fxManifestFileName = 'fxmanifest.lua';
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const fileName = file.name.toLowerCase();
 
-                const folderMap = {};
-                let streamFiles = [];
-                let totalFiles = 0;
-                let processedFiles = 0;
-
-                const statusMessage = document.getElementById('statusMessage');
-                statusMessage.textContent = 'Uploading... Uploads usually take 2-3 minutes for 3-5 vehicles. Depending on the amount of vehicles you have. The more you have, the longer it takes. Do NOT refresh this page, its working, if you refresh it will cancel.'; // Set initial status message
-
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    const fileName = file.name.toLowerCase();
-
-                    if (fileName.endsWith('.meta') || fileName.endsWith('.yft') || fileName.endsWith('.ytd')) {
-                        const fileInfo = document.createElement('p');
-                        fileInfo.textContent = `${fileName}`;
-                        fileList.appendChild(fileInfo);
-                    }
+                if (fileName.endsWith('.meta') || fileName.endsWith('.yft') || fileName.endsWith('.ytd')) {
+                    entries.push(file);
                 }
+            }
 
-                const entries = [];
+            totalFiles = entries.length;
 
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    const fileName = file.name.toLowerCase();
+            entries.forEach(entry => {
+                handleFile(entry);
+            });
 
-                    if (fileName.endsWith('.meta') || fileName.endsWith('.yft') || fileName.endsWith('.ytd')) {
-                        entries.push(file);
-                    }
-                }
+            function handleFile(file) {
+                const fileName = file.name.toLowerCase();
+                const fileType = getFileType(fileName);
 
-                totalFiles = entries.length;
-
-                entries.forEach(entry => {
-                    handleFile(entry);
-                });
-
-                function handleFile(file) {
-                    const fileName = file.name.toLowerCase();
-                    const fileType = getFileType(fileName);
-
-                    if (fileType === 'meta') {
-                        handleMetaFile(file);
-                    } else if (fileType === 'yft' || fileType === 'ytd') {
-                        handleStreamFile(file);
-                    } else {
-                        updateProgress();
-                    }
-                }
-
-                function getFileType(fileName) {
-                    if (fileName.endsWith('.meta')) {
-                        return 'meta';
-                    } else if (fileName.endsWith('.yft')) {
-                        return 'yft';
-                    } else if (fileName.endsWith('.ytd')) {
-                        return 'ytd';
-                    } else {
-                        return '';
-                    }
-                }
-
-                
-                
-
-                function handleMetaFile(file) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const content = e.target.result;
-                        const fileName = file.name;
-
-                        if (!folderMap[fileName]) {
-                            folderMap[fileName] = [];
-                        }
-
-                        folderMap[fileName].push({
-                            vehicle: file.webkitRelativePath.split('/')[0],
-                            content: content
-                        });
-
-                        updateProgress();
-                    };
-                    reader.readAsText(file);
-                }
-
-                function handleStreamFile(file) {
-                    streamFiles.push({
-                        vehicle: file.webkitRelativePath.split('/')[0],
-                        file: file
-                    });
-
+                if (fileType === 'meta') {
+                    handleMetaFile(file);
+                } else if (fileType === 'yft' || fileType === 'ytd') {
+                    handleStreamFile(file);
+                } else {
                     updateProgress();
                 }
+            }
 
-                function updateProgress() {
-                    processedFiles++;
-                    const progressBar = document.getElementById('progressBar');
-                    if (progressBar) {
-                        progressBar.style.width = (processedFiles / totalFiles) * 100 + '%';
-                        if (processedFiles === totalFiles) {
-                            createFolderStructureAndDownloadLink();
-                        }
+            function getFileType(fileName) {
+                if (fileName.endsWith('.meta')) {
+                    return 'meta';
+                } else if (fileName.endsWith('.yft')) {
+                    return 'yft';
+                } else if (fileName.endsWith('.ytd')) {
+                    return 'ytd';
+                } else {
+                    return '';
+                }
+            }
+
+            function handleMetaFile(file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    const fileName = file.name;
+
+                    const vehicleName = file.webkitRelativePath.split('/')[1]; // Extract vehicle name from path
+
+                    const dataFolder = createDataFolder(vehicleName); // Create or get existing data folder for the vehicle
+
+                    dataFolder.file(fileName, content); // Add meta file to the vehicle's data folder
+
+                    updateProgress();
+                };
+                reader.readAsText(file);
+            }
+
+            function createDataFolder(vehicleName) {
+                const mainFolder = zip.folder(mainFolderName);
+                const dataFolder = mainFolder.folder(dataFolderName);
+                return dataFolder.folder(vehicleName); // Create or get existing vehicle folder inside data folder
+            }
+
+            function handleStreamFile(file) {
+                streamFiles.push({
+                    vehicle: file.webkitRelativePath.split('/')[1], // Extract vehicle name from path
+                    file: file
+                });
+
+                updateProgress();
+            }
+
+            function updateProgress() {
+                processedFiles++;
+                const progressMessage = document.getElementById('progressMessage');
+                if (progressMessage) {
+                    progressMessage.textContent = `Processing ${processedFiles} of ${totalFiles} files...`;
+                    if (processedFiles === totalFiles) {
+                        createFolderStructureAndDownloadLink();
                     }
                 }
+            }
 
-                function createFolderStructureAndDownloadLink() {
-                    const zip = new JSZip();
-                    const mainFolder = zip.folder(mainFolderName);
-                    const streamFolder = mainFolder.folder(streamFolderName);
+            function createFolderStructureAndDownloadLink() {
+                const mainFolder = zip.folder(mainFolderName);
+                const streamFolder = mainFolder.folder(streamFolderName);
+                const dataFolder = mainFolder.folder(dataFolderName);
 
-                    // Add FXManifest.lua file to main folder
-                    let fxManifestContent = `fx_version 'cerulean'\n\nfiles {\n`;
+                // Update FXManifest.lua content
+                let fxManifestContent = 'fx_version \'cerulean\'\n\n';
+                fxManifestContent += 'game \'gta5\'\n\n';
+                fxManifestContent += 'description \'Red Leaf Modifications Car Merger\'\n\n';
+                fxManifestContent += 'files {\n';
+                fxManifestContent += '    \'data/**/*.meta\'\n';
+                fxManifestContent += '}\n\n';
 
-                    for (const fileName in folderMap) {
-                        if (folderMap.hasOwnProperty(fileName)) {
-                            const vehicleFiles = folderMap[fileName];
+                // Data files
+                fxManifestContent += `data_file 'HANDLING_FILE' 'data/**/handling.meta'\n`;
+                fxManifestContent += `data_file 'VEHICLE_LAYOUTS_FILE' 'data/**/vehiclelayouts.meta'\n`;
+                fxManifestContent += `data_file 'VEHICLE_METADATA_FILE' 'data/**/vehicles.meta'\n`;
+                fxManifestContent += `data_file 'CARCOLS_FILE' 'data/**/carcols.meta'\n`;
+                fxManifestContent += `data_file 'VEHICLE_VARIATION_FILE' 'data/**/carvariations.meta'\n`;
+                fxManifestContent += `data_file 'DLCTEXT_FILE' 'data/**/dlctext.meta'\n`;
+                fxManifestContent += `data_file 'CARCONTENTUNLOCKS_FILE' 'data/**/carcontentunlocks.meta'\n`;
 
-                            vehicleFiles.forEach(vehicleFile => {
-                                const vehicleFolder = mainFolder.folder(vehicleFile.vehicle);
-                                vehicleFolder.file(fileName, vehicleFile.content);
-                                fxManifestContent += `    '${vehicleFile.vehicle}/${fileName}',\n`;
-                            });
-                        }
-                    }
+                // Add .meta files to data folder
+                const metaFileNames = Object.keys(folderMap);
 
-                    fxManifestContent += `}\n\ndata_file 'VEHICLE_METADATA_FILE' 'stream/vehicle.meta'\n\ndata_file 'CARCOLS_FILE' 'stream/carcols.meta'\n\ndata_file 'HANDLING_FILE' 'stream/handling.meta'\n\ndata_file 'VEHICLE_VARIATION_FILE' 'stream/carvariations.meta'\n`;
+                metaFileNames.forEach(fileName => {
+                    const vehicleName = fileName.split('/')[1]; // Extract vehicle name
+                    const dataFolderForVehicle = createDataFolder(vehicleName); // Create or get existing data folder for the vehicle
 
-                    mainFolder.file(fxManifestFileName, fxManifestContent);
+                    dataFolderForVehicle.file(fileName, folderMap[fileName]); // Add meta file to the vehicle's data folder
+                });
 
-                    // Add stream files to stream folder
-                    const streamFilePromises = streamFiles.map(item => {
-                        const file = item.file;
-                        const vehicle = item.vehicle;
-
-                        return new Promise((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = function(e) {
-                                const arrayBuffer = e.target.result;
-                                streamFolder.file(`${vehicle}/${file.name}`, arrayBuffer);
-                                resolve();
-                            };
-                            reader.onerror = reject;
-                            reader.readAsArrayBuffer(file);
-                        });
+                // Add .yft and .ytd files to stream folder
+                const streamFilePromises = streamFiles.map(item => {
+                    const { vehicle, file } = item;
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            streamFolder.folder(vehicle).file(file.name, e.target.result); // Adjusted for nested folder creation
+                            resolve();
+                        };
+                        reader.readAsArrayBuffer(file);
                     });
+                });
 
-                    Promise.all(streamFilePromises).then(() => {
-                        zip.generateAsync({ type: 'blob' }).then(blob => {
-                            const downloadLink = document.createElement('a');
-                            downloadLink.href = URL.createObjectURL(blob);
-                            downloadLink.download = 'merged_vehicle_files.zip';
-                            downloadLink.classList.add('download-link');
-                            downloadLink.textContent = 'Download ZIP File';
-                            document.querySelector('.container').appendChild(downloadLink);
+                Promise.all(streamFilePromises)
+                    .then(() => {
+                        // Add FXManifest.lua file to main folder
+                        mainFolder.file(fxManifestFileName, fxManifestContent);
 
-                            // Update status message
-                            statusMessage.textContent = 'Upload complete. ZIP file is ready for download.';
-                            sendWebhookNotification();
-                        }).catch(function(error) {
-                            console.error('Error generating ZIP:', error);
-                            statusMessage.textContent = 'Error generating ZIP file.';
-                        });
-                    }).catch(function(error) {
+                        // Generate ZIP and create download link
+                        zip.generateAsync({ type: 'blob' })
+                            .then(function(blob) {
+                                const url = URL.createObjectURL(blob);
+                                const downloadLink = document.getElementById('downloadLink');
+                                downloadLink.href = url;
+                                downloadLink.style.display = 'inline-block'; // Show download link
+                            })
+                            .catch(function(error) {
+                                console.error('Error generating ZIP:', error);
+                            });
+                    })
+                    .catch(function(error) {
                         console.error('Error adding stream files to ZIP:', error);
-                        statusMessage.textContent = 'Error adding files to ZIP.';
                     });
-                }
-
-                function sendWebhookNotification() {
-                    fetch('https://api64.ipify.org?format=json')
-                        .then(response => response.json())
-                        .then(data => {
-                            const ipAddress = data.ip;
-                            fetch(`https://ipapi.co/${ipAddress}/json/`)
-                                .then(response => response.json())
-                                .then(locationData => {
-                                    const city = locationData.city;
-                                    const region = locationData.region;
-                                    const country = locationData.country_name;
-
-                                    const webhookURL = 'https://discord.com/api/webhooks/1258254638117945354/GohJ1q3_knUCfeQ-6duPhy2ReEIyryklMDfHVS3pr538bHMi3OxQ_g3v51h8Z_Woyt9D';
-
-                                    const embed = {
-                                        embeds: [{
-                                            title: 'Vehicle Merge Notification',
-                                            description: 'User has merged a vehicle',
-                                            color: 0xff0000,
-                                            fields: [
-                                                { name: 'IP Address', value: ipAddress, inline: true },
-                                                { name: 'Location', value: `${city}, ${region}, ${country}`, inline: true }
-                                            ],
-                                            timestamp: new Date().toISOString(),
-                                        }]
-                                    };
-
-                                    fetch(webhookURL, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                        },
-                                        body: JSON.stringify(embed),
-                                    })
-                                    .then(response => {
-                                        if (!response.ok) {
-                                            console.error('Failed to send webhook:', response.status, response.statusText);
-                                        }
-                                    })
-                                    .catch(error => {
-                                        console.error('Error sending webhook:', error);
-                                    });
-
-                                })
-                                .catch(error => {
-                                    console.error('Error fetching location:', error);
-
-                                    const webhookURL = 'https://discord.com/api/webhooks/1258254638117945354/GohJ1q3_knUCfeQ-6duPhy2ReEIyryklMDfHVS3pr538bHMi3OxQ_g3v51h8Z_Woyt9D';
-
-                                    const embed = {
-                                        embeds: [{
-                                            title: 'Vehicle Merge Notification',
-                                            description: 'User has merged a vehicle',
-                                            color: 0xff0000,
-                                            fields: [
-                                                { name: 'IP Address', value: ipAddress, inline: true },
-                                                { name: 'Location', value: 'Location information unavailable', inline: true }
-                                            ],
-                                            timestamp: new Date().toISOString(),
-                                        }]
-                                    };
-
-                                    fetch(webhookURL, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                        },
-                                        body: JSON.stringify(embed),
-                                    })
-                                    .then(response => {
-                                        if (!response.ok) {
-                                            console.error('Failed to send webhook:', response.status, response.statusText);
-                                        }
-                                    })
-                                    .catch(error => {
-                                        console.error('Error sending webhook:', error);
-                                    });
-                                });
-                        })
-                        .catch(error => {
-                            console.error('Error fetching IP address:', error);
-
-                            const webhookURL = 'https://discord.com/api/webhooks/1258254638117945354/GohJ1q3_knUCfeQ-6duPhy2ReEIyryklMDfHVS3pr538bHMi3OxQ_g3v51h8Z_Woyt9D';
-
-                            const embed = {
-                                embeds: [{
-                                    title: 'Vehicle Merge Notification',
-                                    description: 'User has merged a vehicle',
-                                    color: 0xff0000,
-                                    fields: [
-                                        { name: 'IP Address', value: 'IP address unavailable', inline: true },
-                                        { name: 'Location', value: 'Location information unavailable', inline: true }
-                                    ],
-                                    timestamp: new Date().toISOString(),
-                                }]
-                            };
-
-                            fetch(webhookURL, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(embed),
-                            })
-                            .then(response => {
-                                if (!response.ok) {
-                                    console.error('Failed to send webhook:', response.status, response.statusText);
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error sending webhook:', error);
-                            });
-                        });
-                }
-            });
+            }
         });
     </script>
 </body>
