@@ -24,25 +24,8 @@ function checkRole(code) {
         // Store access token in localStorage
         localStorage.setItem('accessToken', accessToken);
 
-        // Get user guilds to check roles
-        fetch(`https://discord.com/api/v9/users/@me/guilds`, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        })
-        .then(response => response.json())
-        .then(guilds => {
-            // Check if the user has the required role (replace with your role ID)
-            const roleId = '1155226137568493698';
-            const hasRole = guilds.some(guild => guild.id === roleId);
-
-            // Display role status
-            const roleStatusElement = document.getElementById('roleStatus');
-            roleStatusElement.textContent = hasRole ? 'You have the role!' : 'You do not have the role.';
-        })
-        .catch(error => {
-            console.error('Error fetching user guilds:', error);
-        });
+        // Redirect to homepage after processing OAuth2 callback
+        window.location.href = 'https://merger.redleafmods.com/';
     })
     .catch(error => {
         console.error('Error fetching access token:', error);
@@ -52,26 +35,15 @@ function checkRole(code) {
 // Function to check if logged in on page load
 function checkLoggedIn() {
     const accessToken = localStorage.getItem('accessToken');
-    if (accessToken) {
-        // Assume user is logged in and fetch guilds to check role
-        fetch(`https://discord.com/api/v9/users/@me/guilds`, {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        })
-        .then(response => response.json())
-        .then(guilds => {
-            // Check if the user has the required role (replace with your role ID)
-            const roleId = '1155226137568493698';
-            const hasRole = guilds.some(guild => guild.id === roleId);
+    const loginStatusElement = document.getElementById('loginStatus');
 
-            // Display role status
-            const roleStatusElement = document.getElementById('roleStatus');
-            roleStatusElement.textContent = hasRole ? 'You have the role!' : 'You do not have the role.';
-        })
-        .catch(error => {
-            console.error('Error fetching user guilds:', error);
-        });
+    if (accessToken) {
+        // User is logged in
+        loginStatusElement.textContent = 'Logged In';
+        // Optionally, check user roles here if needed
+    } else {
+        // User is logged out
+        loginStatusElement.textContent = 'Logged Out';
     }
 }
 
@@ -81,9 +53,6 @@ const code = urlParams.get('code');
 
 if (code) {
     checkRole(code);
-
-    // Redirect to homepage after processing OAuth2 callback
-    window.location.href = 'https://merger.redleafmods.com/';
 } else {
     // Check if logged in on page load
     checkLoggedIn();
