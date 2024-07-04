@@ -29,6 +29,7 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
+        
 
         .container {
             position: relative;
@@ -124,6 +125,83 @@
             background-color: #ff5f5f;
             color: #f0f0f0;
         }
+
+        /* Premium Subscription Section Styles */
+        .premium-section {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #333333;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .premium-title {
+            font-size: 24px;
+            color: #ff4747;
+            margin-bottom: 10px;
+        }
+
+        .premium-option {
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: #3d3d3d;
+            color: #f0f0f0;
+            border: 2px solid #ff4747;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .premium-option:hover {
+            background-color: #ff4747;
+            color: #1a1a1a;
+        }
+
+        .premium-option .price {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .premium-option .details {
+            font-size: 14px;
+            margin-top: 5px;
+            color: #cccccc;
+        }
+        /* Button styling */
+#premiumToggleBtn {
+    background-color: #ff4747;
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 20px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+#premiumToggleBtn:hover {
+    background-color: #ff5f5f;
+}
+#toggleFileListBtn {
+            background-color: #ff4747;
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #toggleFileListBtn:hover {
+            background-color: #ff5f5f;
+        }
+
+
+
     </style>
 </head>
 <body>
@@ -135,8 +213,158 @@
             <div id="fileList" class="file-list"></div>
             <div class="progress-bar"><div id="progressBar"></div></div>
             <p id="statusMessage" class="status-message"></p>
+            
+<!-- Premium Subscription Section -->
+<div class="premium-section">
+    <h3 class="premium-title">Premium Subscription Options</h3>
+    
+    <div id="premiumOptions" style="display: none;">
+        <div class="premium-option">
+            <div>
+                <h4>Free</h4>
+                <p class="price">00.00 / month</p>
+            </div>
+            <div class="details">
+                <p>Unlimited Conversions</p>
+                <p>Max of Two Vehicles per conversion</p>
+            </div>
+        </div>
+        
+
+        
+        <div class="premium-option">
+            <div>
+                <h4>Basic</h4>
+                <p class="price">$0.99 / month</p>
+            </div>
+            <div class="details">
+                <p>Unlimited Conversions</p>
+                <p>Max of ten vehicles per conversion</p>
+            </div>
+        </div>
+
+        <div class="premium-option">
+            <div>
+                <h4>Pro</h4>
+                <p class="price">$4.99 / month</p>
+            </div>
+            <div class="details">
+                <p>Unlimited Conversions</p>
+                <p>Unlimited Vehicles per Conversion</p>
+                <p>Additional perks can be added here</p>
+            </div>
         </div>
     </div>
+    
+    <button id="premiumToggleBtn" onclick="togglePremiumSection()">Show Premium Options</button>
+</div>
+
+ <!-- Button and logo display area -->
+ <div id="authSection" style="position: fixed; top: 10px; right: 10px;">
+    <button id="authButton" style="display: none;">Login with Discord</button>
+    <img id="userAvatar" style="display: none; width: 40px; height: 40px; border-radius: 50%;">
+</div>
+
+
+
+        <!-- File List Section -->
+        <div id="fileListSection" style="display: none;">
+            <div id="fileList" class="file-list"></div>
+        </div>
+
+        <button id="toggleFileListBtn" onclick="toggleFileList()">Hide File List</button>
+
+
+        <script>
+            function toggleFileList() {
+                var fileList = document.getElementById('fileList');
+                var fileListSection = document.getElementById('fileListSection');
+                var toggleBtn = document.getElementById('toggleFileListBtn');
+    
+                if (fileList.style.display === 'none') {
+                    fileList.style.display = 'block';
+                    toggleBtn.textContent = 'Hide File List';
+                } else {
+                    fileList.style.display = 'none';
+                    toggleBtn.textContent = 'Show File List';
+                }
+            }
+        </script>
+
+
+
+
+
+
+
+<script>
+    // Function to update UI after successful login
+    function updateUIWithAvatar(avatarURL) {
+        const authButton = document.getElementById('authButton');
+        const userAvatar = document.getElementById('userAvatar');
+
+        authButton.style.display = 'none'; // Hide login button
+        userAvatar.src = avatarURL; // Set avatar image source
+        userAvatar.style.display = 'inline-block'; // Show avatar image
+    }
+
+    // Check if user is logged in and update UI accordingly
+    function checkLoggedIn() {
+        const token = localStorage.getItem('discord_token'); // Example: Use localStorage to store token
+        if (token) {
+            // Fetch user profile using Discord API
+            fetch('https://discord.com/api/users/@me', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const avatarURL = `https://cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png`;
+                updateUIWithAvatar(avatarURL);
+            })
+            .catch(error => {
+                console.error('Error fetching user data:', error);
+            });
+        } else {
+            // Show login button if user is not logged in
+            const authButton = document.getElementById('authButton');
+            authButton.style.display = 'inline-block';
+        }
+    }
+
+    // Handle login button click
+    document.getElementById('authButton').addEventListener('click', () => {
+        // Redirect user to Discord OAuth2 authorization endpoint
+        window.location.href = 'https://discord.com/api/oauth2/authorize?client_id=807252635605794846&redirect_uri=https%3A%2F%2Fmerger.redleafmods.com%2Fcallback&response_type=code&scope=identify%20email';
+    });
+
+    // Call checkLoggedIn function when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        checkLoggedIn();
+    });
+</script>
+
+
+
+
+
+
+<script>
+    function togglePremiumSection() {
+        var premiumOptions = document.getElementById('premiumOptions');
+        var toggleBtn = document.getElementById('premiumToggleBtn');
+        
+        if (premiumOptions.style.display === 'none') {
+            premiumOptions.style.display = 'block';
+            toggleBtn.textContent = 'Hide Premium Options';
+        } else {
+            premiumOptions.style.display = 'none';
+            toggleBtn.textContent = 'Show Premium Options';
+        }
+    }
+</script>
+
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
     <script>
@@ -216,6 +444,8 @@
                         return '';
                     }
                 }
+
+                
 
                 function handleMetaFile(file) {
                     const reader = new FileReader();
