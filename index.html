@@ -365,51 +365,15 @@
     }
 </script>
 
+<script>
+    function loginWithDiscord() {
+        const CLIENT_ID = '807252635605794846';
+        const REDIRECT_URI = 'https://merger.redleafmods.com/callback';
+        const AUTH_URL = `https://discord.com/api/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=code&scope=identify`;
 
-              <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const CLIENT_ID = '807252635605794846';
-            const REDIRECT_URI = 'https://merger.redleafmods.com/callback';
-            const DISCORD_AUTH_URL = 'https://discord.com/api/oauth2/authorize';
-
-            const discordLoginBtn = document.getElementById('discordLoginBtn');
-
-            discordLoginBtn.addEventListener('click', () => {
-                // Generate a unique state parameter to prevent CSRF attacks
-                const state = generateRandomString(16);
-                localStorage.setItem('discordOAuthState', state);
-
-                // Construct the authorization URL
-                const authParams = {
-                    response_type: 'code',
-                    client_id: CLIENT_ID,
-                    redirect_uri: REDIRECT_URI,
-                    state: state,
-                    scope: 'identify' // Adjust scopes as per your requirements
-                };
-
-                const authUrl = `${DISCORD_AUTH_URL}?${encodeParams(authParams)}`;
-
-                // Redirect the user to Discord authorization endpoint
-                window.location.href = authUrl;
-            });
-
-            // Helper function to encode URL parameters
-            function encodeParams(params) {
-                return Object.keys(params).map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`).join('&');
-            }
-
-            // Helper function to generate random string
-            function generateRandomString(length) {
-                const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-                let result = '';
-                for (let i = 0; i < length; i++) {
-                    result += charset.charAt(Math.floor(Math.random() * charset.length));
-                }
-                return result;
-            }
-        });
-    </script>
+        window.location.href = AUTH_URL;
+    }
+</script>
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
@@ -491,6 +455,7 @@
                     }
                 }
 
+                
                 
 
                 function handleMetaFile(file) {
