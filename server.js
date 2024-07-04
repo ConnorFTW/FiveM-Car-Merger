@@ -1,56 +1,57 @@
-const express = require('express');
-const axios = require('axios');
-const app = express();
-const PORT = process.env.PORT || 3000;
+// Replace with your Discord OAuth2 client ID and redirect URI
+const clientId = '807252635605794846';
+const redirectUri = 'https://merger.redleafmods.com/callback';
 
-const CLIENT_ID = '807252635605794846';
-const CLIENT_SECRET = '85i5HkKnDFfiRVqwjB6mkVTSs2_vAjsh';
-const REDIRECT_URI = 'https://merger.redleafmods.com/callback';
-const DISCORD_API_BASE_URL = 'https://discord.com/api';
+// OAuth2 login function
+function loginWithDiscord() {
+    window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds`;
+}
 
-app.get('/callback', async (req, res) => {
-    const code = req.query.code;
+// Function to handle role checking after redirect
+function checkRole(code) {
+    fetch(`https://discord.com/api/oauth2/token`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `client_id=${clientId}&client_secret=${clientSecret}&grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(redirectUri)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        const accessToken = data.access_token;
 
-    try {
-        // Exchange code for access token
-        const tokenResponse = await axios.post(`${DISCORD_API_BASE_URL}/oauth2/token`, {
-            grant_type: 'authorization_code',
-            code: code,
-            redirect_uri: REDIRECT_URI,
-            client_id: CLIENT_ID,
-            client_secret: CLIENT_SECRET,
-            scope: 'identify' // Adjust scopes as per your requirements
-        });
-
-        const accessToken = tokenResponse.data.access_token;
-
-        // Use accessToken to fetch user info (including roles)
-        const userResponse = await axios.get(`${DISCORD_API_BASE_URL}/users/@me`, {
+        // Get user guilds to check roles
+        fetch(`https://discord.com/api/v9/users/@me/guilds`, {
             headers: {
-                Authorization: `Bearer ${accessToken}`
+                'Authorization': `Bearer ${accessToken}`
             }
+        })
+        .then(response => response.json())
+        .then(guilds => {
+            // Check if the user has the required role (replace with your role ID)
+            const roleId = '1155226137568493698';
+            const hasRole = guilds.some(guild => guild.id === roleId);
+
+            // Display role status
+            const roleStatusElement = document.getElementById('roleStatus');
+            roleStatusElement.textContent = hasRole ? 'You have the role!' : 'You do not have the role.';
+        })
+        .catch(error => {
+            console.error('Error fetching user guilds:', error);
         });
+    })
+    .catch(error => {
+        console.error('Error fetching access token:', error);
+    });
+}
 
-        const userId = userResponse.data.id;
-        const userRoles = userResponse.data.roles;
+// Check if the current URL contains an authorization code from Discord OAuth2 redirect
+const urlParams = new URLSearchParams(window.location.search);
+const code = urlParams.get('code');
 
-        // Check if the user has the specific role (1155226137568493698)
-        const hasRole = userRoles.includes('1155226137568493698');
+if (code) {
+    checkRole(code);
+}
 
-        if (hasRole) {
-            // User has the role, proceed with your application logic
-            res.send('User has the specified role.');
-        } else {
-            // User does not have the role, handle accordingly
-            res.send('User does not have the specified role.');
-        }
-
-    } catch (error) {
-        console.error('Error exchanging code for token:', error.message);
-        res.status(500).send('Error exchanging code for token.');
-    }
-});
-
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+// Add event listener to the login button
+document.getElementById('loginBtn').addEventListener('click', loginWithDiscord);
