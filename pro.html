@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RLM Car Merger</title>
+    <link rel="stylesheet" href="index.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://i.gyazo.com/3638217c5a6bd9bdc6288c89aca6ee77.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #ffffff;
+        }
+        .container {
+            background: rgba(44, 47, 51, 0.85);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border: 2px solid red;
+            position: relative;
+        }
+        .container h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #ffffff;
+        }
+        .input-field {
+            margin-bottom: 20px;
+        }
+        .input-field input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: #23272a;
+            color: #ffffff;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff0000;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #b30000;
+        }
+        .error-message {
+            display: none;
+            color: #ff0000;
+            margin-top: 20px;
+        }
+        .logo {
+            width: 100px;
+            position: absolute;
+            top: -60px;
+            left: calc(50% - 50px);
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://i.gyazo.com/24452862b228c48099ec621a7deaface.png" alt="Logo" class="logo">
+        <h1>Premium User Login</h1>
+        <div class="input-field">
+            <input type="text" id="username" placeholder="Username" required>
+        </div>
+        <div class="input-field">
+            <input type="password" id="password" placeholder="Password" required>
+        </div>
+        <button id="btn" class="btn">Confirm</button>
+        <p id="error-message" class="error-message">Nom d'utilisateur ou mot de passe incorrect</p>
+    </div>
+    <script>
+        const user = { username: 'connorftw114', password: 'connorftw114' };
+
+        document.getElementById('btn').addEventListener('click', () => {
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
+
+            if (usernameInput === user.username && passwordInput === user.password) {
+                window.location.href = 'form.html';
+            } else {
+                errorMessage.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

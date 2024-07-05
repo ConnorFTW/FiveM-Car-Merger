@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload and Merge Vehicle Files</title>
+    <link rel="stylesheet" href="index.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://i.gyazo.com/3638217c5a6bd9bdc6288c89aca6ee77.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #ffffff;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6); /* Semi-transparent overlay */
+            z-index: -1; /* Behind other content */
+        }
+        .page-wrapper {
+            position: relative; /* Ensure relative positioning */
+            z-index: 1; /* Above overlay */
+        }
+        .container {
+            background: rgba(44, 47, 51, 0.85);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border: 2px solid red; /* Red outline */
+            position: relative;
+        }
+        .container h2.title {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #ffffff;
+        }
+        .input-field {
+            margin-bottom: 20px;
+        }
+        .input-field input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #23272a;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+        }
+        .red-outline {
+            border: 1px solid #ff0000; /* Red border outline */
+        }
+        .toggle-button, .download-button, .discord-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff0000; /* Red button background */
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .toggle-button:hover, .download-button:hover, .discord-button:hover {
+            background-color: #b30000; /* Darker red on hover */
+        }
+        .supporter-options {
+            display: none; /* Hidden by default */
+            margin-top: 20px;
+        }
+        .package {
+            background-color: #23272a;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .package h4 {
+            color: #ffffff;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .package p {
+            color: #ffffff;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .logo {
+            width: 100px;
+            position: absolute;
+            top: -60px;
+            left: calc(50% - 50px);
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px;
+        }
+        .error-message {
+            color: #ff4c4c; /* Red color for error message */
+            font-size: 14px;
+            margin-top: 5px;
+            display: none; /* Initially hidden */
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    <div class="page-wrapper">
+        <div class="container">
+            <img src="https://i.gyazo.com/24452862b228c48099ec621a7deaface.png" alt="Logo" class="logo">
+            <h2 class="title">Upload and Merge Vehicle Files</h2>
+            <input type="file" id="folderInput" webkitdirectory directory multiple class="red-outline">
+            <div id="fileList" class="file-list red-outline"></div>
+            <p id="errorMessage" class="error-message">Please select 25 files or fewer.</p>
+            <button id="toggleButton" class="toggle-button red-outline" onclick="toggleFileList()">Toggle File List</button>
+            <p id="progressMessage" class="progress-message" style="display: none;">In Progress...</p>
+            <a href="#" id="downloadLink" class="download-button red-outline" style="display: none;">Download Main Folder as ZIP</a>
+            <button id="supporterButton" class="toggle-button red-outline" onclick="toggleSupporterOptions()">Supporter Options</button>
+            <div id="supporterOptions" class="supporter-options red-outline">
+                <div class="package">
+                    <h4>Package 1</h4>
+                    <p>- Perk 1</p>
+                    <p>- Perk 2</p>
+                    <p>- Perk 3</p>
+                </div>
+                <div class="package">
+                    <h4>Package 2</h4>
+                    <p>- Perk 1</p>
+                    <p>- Perk 2</p>
+                    <p>- Perk 3</p>
+                </div>
+                <div class="package">
+                    <h4>Package 3</h4>
+                    <p>- Perk 1</p>
+                    <p>- Perk 2</p>
+                    <p>- Perk 3</p>
+                </div>
+            </div>
+            <a href="https://discord.gg/EQggQtcWuG" class="discord-button red-outline">Join our Discord</a>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <script src="index2.js">
+        
+    </script>
+</body>
+</html>
